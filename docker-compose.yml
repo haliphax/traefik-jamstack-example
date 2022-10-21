@@ -1,0 +1,45 @@
+version: '3.8'
+
+networks:
+
+    proxy:
+
+services:
+
+    traefik:
+        depends_on:
+            - webapi
+            - webstatic
+        image: traefik:latest
+        networks:
+            - proxy
+        volumes:
+            - ./traefik/traefik.toml:/traefik.toml
+            # read-only access to docker socket to see available containers
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        ports:
+            - 80:80
+            - 8080:8080
+
+    # replace with your own web application
+    webapi:
+        build: .
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.webapi.entrypoints=web
+            # only handles requests whose paths begin with /api
+            - traefik.http.routers.webapi.rule=PathPrefix(`/api`)
+        networks:
+            - proxy
+
+    webstatic:
+        image: nginx:latest
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.webstatic.entrypoints=web
+            # handles requests for all paths that don't match other rules
+            - traefik.http.routers.webstatic.rule=PathPrefix(`/`)
+        networks:
+            - proxy
+        volumes:
+            - ./static:/usr/share/nginx/html:ro

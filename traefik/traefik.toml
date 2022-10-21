@@ -1,0 +1,22 @@
+[global]
+    checkNewVersion = false
+    sendAnonymousUsage = false
+
+[entryPoints]
+    [entryPoints.web]
+        address = ":80"
+
+[log]
+    level = "INFO"
+
+[api]
+	# Traefik dashboard available at http://localhost/dashboard
+    dashboard = true
+	# allow plain http
+    insecure = true
+
+[providers.docker]
+    # requires "traefik.enable=true" label on containers
+    exposedByDefault = false
+	# only scans for containers in this network
+    network = "traefik-jamstack-example_proxy"
